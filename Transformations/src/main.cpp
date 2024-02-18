@@ -1,23 +1,14 @@
+#include <random>
+#include <GL/glew.h>
 #include <GL/freeglut.h>
 #include <GL/GL.h>
-#include <random>
+#include <cyCodeBase/cyMatrix.h>
+#include <cyCodeBase/cyGL.h>
+#include <cyCodeBase/cyTriMesh.h>
+#pragma comment (lib, "glew32.lib")
 
-void HandleIdle()
-{
-	glutPostRedisplay();
-}
-
-void HandleKeys(unsigned char InKey, int InX, int InY)
-{
-	switch (InKey)
-	{
-	case 27: // ESC
-		glutLeaveMainLoop();
-		break;
-	default:
-		break;
-	}
-}
+constexpr int Width = 600;
+constexpr int Height = 600;
 
 void Render()
 {
@@ -31,14 +22,13 @@ void Render()
 
 int main(int argc, char** argv)
 {
-	glutInit(&argc, argv);
+	glutInit(&argc, argv); //to initialize GLUT
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
-	glutInitWindowSize(600, 600);
+	glutInitWindowSize(Width, Height);
 	glutInitWindowPosition(100, 100);
-	glutCreateWindow("Hello World");
+	glutCreateWindow("Transformations");
 	glutDisplayFunc(Render);
-	glutKeyboardFunc(HandleKeys);
-	glutIdleFunc(HandleIdle);
+	glewInit();
 	glutMainLoop();
 	return 0;
 }
