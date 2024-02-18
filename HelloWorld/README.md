@@ -8,7 +8,8 @@ OpenGL 창을 생성하고 기본 OpenGL 함수를 사용하여 색을 칠해봅
 * OpenGL 뷰포트 크기는 명시적으로 지정되어야 합니다.
 * OpenGL 함수를 호출하여 창의 배경색을 설정하세요.
 * "Esc" 키를 누르면 창이 닫히도록 해야 합니다.
-* 모든 OpenGL 관련 헤더는 include 경로의 GL 디렉토리 하위에 배치되어야 하며 슬래시를 사용하여 포함되어야 합니다.<br>GLFW를 사용하는 경우 기본 헤더 위치에 둘 수 있습니다.
+* 모든 OpenGL 관련 헤더는 include 경로의 GL 디렉토리 안에 배치되어야 하며 슬래시를 사용하여 include 되어야 합니다.<br>
+GLFW를 사용하는 경우 기본 헤더 위치에 둘 수 있습니다.
 ```cpp
 #include <GL/freeglut.h>
 #include <GLFW/glfw3.h>
@@ -32,3 +33,6 @@ GLUT 또는 FreeGLUT을 사용하는 경우 아래 GLUT 함수들을 주목하�
 * `glutIdleFunc`
 
 ## 결과
+<div align=center> 
+<img src="./img/result.gif">
+</div>
