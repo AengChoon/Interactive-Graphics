@@ -9,6 +9,11 @@
 constexpr int Width = 600;
 constexpr int Height = 600;
 
+bool bIsRotating = false;
+bool bIsZooming = false;
+cy::Vec2<int> LastMousePosition {0, 0};
+cy::Vec2<int> CurrentMousePosition {0, 0};
+
 GLuint VertexArray;
 GLuint VertexBuffer;
 
@@ -22,6 +27,35 @@ cy::Matrix4f ProjectionMatrix;
 void Idle()
 {
 	glutPostRedisplay();
+}
+
+void HandleMouseButton(int InButton, int InState, int InX, int InY)
+{
+	if (InButton == GLUT_LEFT_BUTTON && InState == GLUT_DOWN)
+	{
+		bIsRotating = true;
+		LastMousePosition = {InX, InY};
+		CurrentMousePosition = {InX, InY};
+	}
+	else if (InButton == GLUT_RIGHT_BUTTON && InState == GLUT_DOWN)
+	{
+		bIsZooming = true;
+		LastMousePosition = {InX, InY};
+		CurrentMousePosition = {InX, InY};
+	}
+	if (InState == GLUT_UP)
+	{
+		bIsRotating = false;
+		bIsZooming = false;
+	}
+}
+
+void HandleMouseMove(int InX, int InY)
+{
+	if (bIsRotating || bIsZooming)
+	{
+		CurrentMousePosition = {InX, InY};
+	}
 }
 
 void Initialize()
@@ -66,11 +100,14 @@ int main(int argc, char** argv)
 {
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
+	glutInitContextVersion(4, 6);
 	glutInitWindowSize(Width, Height);
 	glutInitWindowPosition(100, 100);
 	glutCreateWindow("Transformations");
 	glewInit();
 	glutDisplayFunc(Render);
+	glutMouseFunc(HandleMouseButton);
+	glutMotionFunc(HandleMouseMove);
 	glutIdleFunc(Idle);
 	Initialize();
 	glutMainLoop();
