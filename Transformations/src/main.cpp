@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <GL/glew.h>
 #include <GL/freeglut.h>
 #include <GL/GL.h>
@@ -21,7 +22,7 @@ cy::TriMesh Object;
 cy::GLSLProgram Program;
 GLuint ProgramID;
 
-cy::Vec3f Position {0.0f, 30.0f, 60.0f};
+cy::Vec3f CameraPosition {0.0f, 0.0f, 60.0f};
 cy::Matrix4f ProjectionMatrix;
 
 void Idle()
@@ -84,7 +85,17 @@ void Render()
 {
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	const cy::Matrix4f ViewMatrix = cy::Matrix4f::View(Position, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f});
+	if (CurrentMousePosition != LastMousePosition)
+	{
+		if (bIsZooming)
+		{
+			CameraPosition.z += static_cast<float>(CurrentMousePosition.y) - static_cast<float>(LastMousePosition.y);
+			CameraPosition.z = cy::Clamp(CameraPosition.z, 10.0f, 1000.0f);
+			LastMousePosition = CurrentMousePosition;
+		}
+	}
+
+	const cy::Matrix4f ViewMatrix = cy::Matrix4f::View(CameraPosition, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f});
 	const cy::Matrix4f ModelMatrix = cy::Matrix4f::Scale(1.0f);
 	cy::Matrix4f ModelViewProjectionMatrix = ProjectionMatrix * ViewMatrix * ModelMatrix;
 	glUniformMatrix4fv(glGetUniformLocation(ProgramID, "ModelViewProjectionMatrix"), 1, GL_FALSE, &ModelViewProjectionMatrix(0, 0));
