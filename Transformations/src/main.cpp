@@ -1,4 +1,3 @@
-#include <algorithm>
 #include <GL/glew.h>
 #include <GL/freeglut.h>
 #include <GL/GL.h>
@@ -23,6 +22,7 @@ cy::GLSLProgram Program;
 GLuint ProgramID;
 
 cy::Vec3f CameraPosition {0.0f, 0.0f, 60.0f};
+cy::Matrix4f RotationMatrix {cy::Matrix4f::Identity()};
 cy::Matrix4f ProjectionMatrix;
 
 void Idle()
@@ -81,12 +81,48 @@ void Initialize()
 	glBindVertexArray(0);
 }
 
+cy::Vec2<float> ToNormalizedDeviceCoordinate(const cy::Vec2<int>& InCoordinates)
+{
+	return {1.0f * static_cast<float>(InCoordinates.x) / Width * 2 - 1.0f, 1.0f * static_cast<float>(InCoordinates.y) / Height * 2 - 1.0f};
+}
+
+cy::Vec3<float> ToArcballVector(const cy::Vec2<int>& InCoordinate)
+{
+	constexpr float ArcballRadius = 1.0f;
+
+	auto ArcballVector = cy::Vec3<float>{ToNormalizedDeviceCoordinate(InCoordinate), 0.0f};
+	ArcballVector.y = -ArcballVector.y;
+	const auto XSquared = ArcballVector.x * ArcballVector.x;
+	const auto YSquared = ArcballVector.y * ArcballVector.y;
+
+	if (XSquared + YSquared <= ArcballRadius * ArcballRadius)
+	{
+		ArcballVector.z = sqrt(ArcballRadius * ArcballRadius - (XSquared + YSquared));
+	}
+	else
+	{
+		ArcballVector = cy::Normalize(ArcballVector) * ArcballRadius;
+	}
+
+	return ArcballVector;
+}
+
 void Render()
 {
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	if (CurrentMousePosition != LastMousePosition)
 	{
+		if (bIsRotating)
+		{
+			const auto LastArcballVector = ToArcballVector(LastMousePosition);
+			const auto CurrentArcballVector = ToArcballVector(CurrentMousePosition);
+			const float RotationAngle = acos(std::min(1.0f, LastArcballVector.Dot(CurrentArcballVector)));
+			const auto RotationAxis = LastArcballVector.Cross(CurrentArcballVector).GetNormalized();
+			LastMousePosition = CurrentMousePosition;
+			RotationMatrix *= cy::Matrix4f::Rotation(RotationAxis, RotationAngle);
+		}
+
 		if (bIsZooming)
 		{
 			CameraPosition.z += static_cast<float>(CurrentMousePosition.y) - static_cast<float>(LastMousePosition.y);
@@ -95,7 +131,8 @@ void Render()
 		}
 	}
 
-	const cy::Matrix4f ViewMatrix = cy::Matrix4f::View(CameraPosition, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f});
+	cy::Matrix4f ViewMatrix = cy::Matrix4f::View(CameraPosition, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f});
+	ViewMatrix *= RotationMatrix;
 	const cy::Matrix4f ModelMatrix = cy::Matrix4f::Scale(1.0f);
 	cy::Matrix4f ModelViewProjectionMatrix = ProjectionMatrix * ViewMatrix * ModelMatrix;
 	glUniformMatrix4fv(glGetUniformLocation(ProgramID, "ModelViewProjectionMatrix"), 1, GL_FALSE, &ModelViewProjectionMatrix(0, 0));
