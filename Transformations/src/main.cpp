@@ -22,12 +22,49 @@ cy::GLSLProgram Program;
 GLuint ProgramID;
 
 cy::Vec3f CameraPosition {0.0f, 0.0f, 60.0f};
-cy::Matrix4f RotationMatrix {cy::Matrix4f::Identity()};
+cy::Vec3f ObjectPosition {0.0f, 0.0f, 0.0f};
+cy::Matrix4f CameraRotationMatrix {cy::Matrix4f::Identity()};
+cy::Matrix4f ModelScaleMatrix {cy::Matrix4f::Identity()};
 cy::Matrix4f ProjectionMatrix;
+bool bIsPerspective {true};
 
 void Idle()
 {
 	glutPostRedisplay();
+}
+
+void HandleKeys(unsigned char InKey, int InX, int InY)
+{
+	switch (InKey)
+	{
+	case 27: // ESC
+		glutLeaveMainLoop();
+		break;
+	case 112: // p
+		{
+			if (bIsPerspective)
+			{
+				const auto Right = Object.GetBoundMax().x;
+				const auto Left = Object.GetBoundMin().x;
+				const auto Top = Object.GetBoundMax().y;
+				const auto Bottom = Object.GetBoundMin().y;
+
+				ProjectionMatrix.Column(0) = {2 / (Right - Left), 0, 0, 0};
+				ProjectionMatrix.Column(1) = {0, 2 / (Top - Bottom), 0, 0};
+				ProjectionMatrix.Column(2) = {0, 0, 1 / (1000.0f - 0.1f), 0};
+				ProjectionMatrix.Column(3) = {-(Right + Left) / (Right - Left), -(Top + Bottom) / (Top - Bottom), -0.1f / (1000.0f - 0.1f), 1};
+			}
+			else
+			{
+				ProjectionMatrix = cy::Matrix4f::Perspective(cy::ToRadians(40.0f), static_cast<float>(Width) / static_cast<float>(Height), 0.1f, 1000.0f);
+			}
+
+			bIsPerspective = !bIsPerspective;
+		}
+		break;
+	default:
+		break;
+	}
 }
 
 void HandleMouseButton(int InButton, int InState, int InX, int InY)
@@ -66,6 +103,8 @@ void Initialize()
 	ProjectionMatrix = cy::Matrix4f::Perspective(cy::ToRadians(40.0f), static_cast<float>(Width) / static_cast<float>(Height), 0.1f, 1000.0f);
 
 	Object.LoadFromFileObj("assets/teapot.obj", true);
+	Object.ComputeBoundingBox();
+	ObjectPosition = (Object.GetBoundMax() + Object.GetBoundMin()) * 0.5f;
 
 	Program.BuildFiles("SimpleShader.vert", "SimpleShader.frag");
 	ProgramID = Program.GetID();
@@ -120,7 +159,7 @@ void Render()
 			const float RotationAngle = acos(std::min(1.0f, LastArcballVector.Dot(CurrentArcballVector)));
 			const auto RotationAxis = LastArcballVector.Cross(CurrentArcballVector).GetNormalized();
 			LastMousePosition = CurrentMousePosition;
-			RotationMatrix *= cy::Matrix4f::Rotation(RotationAxis, RotationAngle);
+			CameraRotationMatrix *= cy::Matrix4f::Rotation(RotationAxis, RotationAngle);
 		}
 
 		if (bIsZooming)
@@ -131,10 +170,10 @@ void Render()
 		}
 	}
 
-	cy::Matrix4f ViewMatrix = cy::Matrix4f::View(CameraPosition, {0.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f});
-	ViewMatrix *= RotationMatrix;
-	const cy::Matrix4f ModelMatrix = cy::Matrix4f::Scale(1.0f);
-	cy::Matrix4f ModelViewProjectionMatrix = ProjectionMatrix * ViewMatrix * ModelMatrix;
+	cy::Matrix4f ViewMatrix = cy::Matrix4f::View(CameraPosition, (Object.GetBoundMax() + Object.GetBoundMin()) * 0.5f, {0.0f, 1.0f, 0.0f});
+	ViewMatrix *= CameraRotationMatrix;
+	const cy::Matrix4f ModelMatrix = ModelScaleMatrix;
+	cy::Matrix4f ModelViewProjectionMatrix = ProjectionMatrix * ViewMatrix * ModelScaleMatrix;
 	glUniformMatrix4fv(glGetUniformLocation(ProgramID, "ModelViewProjectionMatrix"), 1, GL_FALSE, &ModelViewProjectionMatrix(0, 0));
 
 	glEnableVertexAttribArray(0);
@@ -154,6 +193,7 @@ int main(int argc, char** argv)
 	glutCreateWindow("Transformations");
 	glewInit();
 	glutDisplayFunc(Render);
+	glutKeyboardFunc(HandleKeys);
 	glutMouseFunc(HandleMouseButton);
 	glutMotionFunc(HandleMouseMove);
 	glutIdleFunc(Idle);
