@@ -67,6 +67,16 @@ void HandleKeys(unsigned char InKey, int InX, int InY)
 	}
 }
 
+void HandleSpecialKeys(int InKey, int InX, int InY)
+{
+	switch (InKey)
+	{
+		case GLUT_KEY_F6:
+			Program.BuildFiles("SimpleShader.vert", "SimpleShader.frag");
+		break;
+	}
+}
+
 void HandleMouseButton(int InButton, int InState, int InX, int InY)
 {
 	if (InButton == GLUT_LEFT_BUTTON && InState == GLUT_DOWN)
@@ -194,6 +204,7 @@ int main(int argc, char** argv)
 	glewInit();
 	glutDisplayFunc(Render);
 	glutKeyboardFunc(HandleKeys);
+	glutSpecialFunc(HandleSpecialKeys);
 	glutMouseFunc(HandleMouseButton);
 	glutMotionFunc(HandleMouseMove);
 	glutIdleFunc(Idle);
