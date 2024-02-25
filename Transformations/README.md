@@ -5,7 +5,7 @@
 이 프로젝트의 요구 사항은 세 가지 단계로 나뉘어 있습니다. 각 단계의 끝에서 구현을 확인할 수도 있지만 세 단계를 모두 완료하기 전에는 올바른 동작이 보장되지는 않습니다.
 * **단계 1:** 정점 버퍼
   - .obj 파일에서 정점 데이터를 읽어옵니다. <br>
-    테스트에는 이 [**teapot.obj**](https://github.com/AengChoon/Interactive-Graphics/blob/9ad839944c71c9a7237e8283fd9bfbb6ead5d261/Transformations/assets/teapot.obj) 파일을 사용할 수 있습니다. <br>
+    테스트에는 이 [**teapot.obj**](https://graphics.cs.utah.edu/courses/cs6610/spring2021/prj02/teapot.obj) 파일을 사용할 수 있습니다. <br>
     .obj 파일을 파싱하기 위해 [cyTriMesh 코드 릴리스](http://www.cemyuksel.com/cyCodeBase/code.html#cyTriMesh)를 사용할 수 있습니다.
   - 프로그램은 .obj 파일의 이름을 첫 번째 명령줄 인수로 사용해야 합니다.
   - 정점 배열 객체를 생성하고 바인딩합니다. <br>
