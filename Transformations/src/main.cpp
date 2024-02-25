@@ -18,6 +18,7 @@ GLuint VertexArray;
 GLuint VertexBuffer;
 
 cy::TriMesh Object;
+std::string ObjectName;
 cy::GLSLProgram Program;
 GLuint ProgramID;
 
@@ -112,7 +113,7 @@ void Initialize()
 
 	ProjectionMatrix = cy::Matrix4f::Perspective(cy::ToRadians(40.0f), static_cast<float>(Width) / static_cast<float>(Height), 0.1f, 1000.0f);
 
-	Object.LoadFromFileObj("assets/teapot.obj", true);
+	Object.LoadFromFileObj(ObjectName.c_str(), true);
 	Object.ComputeBoundingBox();
 	ObjectPosition = (Object.GetBoundMax() + Object.GetBoundMin()) * 0.5f;
 
@@ -195,6 +196,10 @@ void Render()
 
 int main(int argc, char** argv)
 {
+	ObjectName = argc >= 2
+					? argv[1]
+					: "assets/teapot.obj";
+
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
 	glutInitContextVersion(4, 6);
