@@ -1,8 +1,10 @@
 #version 460
 
-out vec4 Color;
+in vec3 VertOutNormal;
+
+out vec4 FragOutColor;
 
 void main()
 {
-	Color = vec4(1.0, 1.0, 1.0, 1.0);
+	FragOutColor = vec4(normalize(VertOutNormal), 1.0);
 }
