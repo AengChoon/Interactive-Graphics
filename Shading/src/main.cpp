@@ -22,6 +22,7 @@ GLuint ProgramID;
 
 cy::Vec3f CameraPosition {0.0f, 0.0f, 60.0f};
 cy::Vec3f ObjectPosition {0.0f, 0.0f, 0.0f};
+cy::Vec3f LightPosition {100.0f, 0.0f, 50.0f};
 cy::Matrix4f ProjectionMatrix;
 
 void Render()
@@ -30,11 +31,16 @@ void Render()
 
 	cy::Matrix4f ViewMatrix = cy::Matrix4f::View(CameraPosition, (Object.GetBoundMax() + Object.GetBoundMin()) * 0.5f, {0.0f, 1.0f, 0.0f});
 
-	cy::Matrix4f ModelViewMatrix = ViewMatrix * cy::Matrix4f::RotationX(cy::ToRadians(315));
+	cy::Matrix4f ModelViewMatrix = ViewMatrix * cy::Matrix4f::RotationX(cy::ToRadians(300.0f));
 	glUniformMatrix4fv(glGetUniformLocation(ProgramID, "ModelViewMatrix"), 1, GL_FALSE, &ModelViewMatrix(0, 0));
 
 	cy::Matrix4f ModelViewProjectionMatrix = ProjectionMatrix * ModelViewMatrix;
 	glUniformMatrix4fv(glGetUniformLocation(ProgramID, "ModelViewProjectionMatrix"), 1, GL_FALSE, &ModelViewProjectionMatrix(0, 0));
+
+	cy::Matrix4f LightViewMatrix = cy::Matrix4f::View(LightPosition, (Object.GetBoundMax() + Object.GetBoundMin()) * 0.5f, {0.0f, 1.0f, 0.0f});
+	glUniformMatrix4fv(glGetUniformLocation(ProgramID, "LightViewMatrix"), 1, GL_FALSE, &LightViewMatrix(0, 0));
+
+	glUniform3f(glGetUniformLocation(ProgramID, "LightPosition"), LightPosition[0], LightPosition[1], LightPosition[2]);
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_DEPTH_TEST);
