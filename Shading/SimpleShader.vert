@@ -12,6 +12,6 @@ out vec4 VertOutObjectViewPosition;
 void main()
 {
 	VertOutObjectViewPosition = ModelViewMatrix * vec4(Position, 1.0);
-	VertOutViewNormal = normalize(mat3(ModelViewMatrix) * Normal);
+	VertOutViewNormal = mat3(ModelViewMatrix) * Normal;
 	gl_Position = ModelViewProjectionMatrix * vec4(Position, 1.0);
 }
