@@ -3,8 +3,7 @@
 in vec3 VertOutViewNormal;
 in vec4 VertOutObjectViewPosition;
 
-uniform mat4 LightViewMatrix;
-uniform vec3 LightPosition;
+uniform vec3 LightViewPosition;
 
 vec3 DiffuseColor = vec3(0.5, 0.2, 0.7);
 vec3 AmbientColor = vec3(0.2, 0.2, 0.2);
@@ -15,7 +14,6 @@ out vec4 FragOutColor;
 
 void main()
 {
-	vec4 LightViewPosition = LightViewMatrix * vec4(LightPosition, 1.0);
 	vec3 ViewNormal = normalize(VertOutViewNormal);
 
 	vec3 VectorToLight = LightViewPosition.xyz - VertOutObjectViewPosition.xyz;
