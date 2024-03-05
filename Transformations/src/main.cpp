@@ -126,9 +126,11 @@ void Initialize()
 	glGenBuffers(1, &VertexBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, VertexBuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(cy::Vec3f) * Object.NV(), &Object.V(0), GL_STATIC_DRAW);
-
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+
 	glBindVertexArray(0);
+	glDisableVertexAttribArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 cy::Vec2<float> ToNormalizedDeviceCoordinate(const cy::Vec2<int>& InCoordinates)
@@ -161,6 +163,10 @@ void Render()
 {
 	glClear(GL_COLOR_BUFFER_BIT);
 
+	glBindVertexArray(VertexArray);
+	glEnableVertexAttribArray(0);
+	glUseProgram(ProgramID);
+
 	if (CurrentMousePosition != LastMousePosition)
 	{
 		if (bIsRotating)
@@ -187,9 +193,6 @@ void Render()
 	cy::Matrix4f ModelViewProjectionMatrix = ProjectionMatrix * ViewMatrix * ModelScaleMatrix;
 	glUniformMatrix4fv(glGetUniformLocation(ProgramID, "ModelViewProjectionMatrix"), 1, GL_FALSE, &ModelViewProjectionMatrix(0, 0));
 
-	glEnableVertexAttribArray(0);
-	glBindVertexArray(VertexArray);
-	glUseProgram(ProgramID);
 	glDrawArrays(GL_POINTS, 0, sizeof(cy::Vec3f) * Object.NV());
 	glutSwapBuffers();
 }
