@@ -10,6 +10,10 @@
 constexpr int Width = 600;
 constexpr int Height = 600;
 
+bool bIsRotating = false;
+cy::Vec2<int> LastMousePosition {0, 0};
+cy::Vec2<int> CurrentMousePosition {0, 0};
+
 GLuint VertexArray;
 GLuint LightVertexArray;
 GLuint VertexBuffer;
@@ -47,6 +51,17 @@ void Render()
 	cy::Matrix4f ModelViewProjectionMatrix = ProjectionMatrix * ModelViewMatrix;
 	glUniformMatrix4fv(glGetUniformLocation(ProgramID, "ModelViewProjectionMatrix"), 1, GL_FALSE, &ModelViewProjectionMatrix(0, 0));
 
+	if (CurrentMousePosition != LastMousePosition)
+	{
+		if (bIsRotating)
+		{
+			const float RotationX = cy::ToRadians(static_cast<float>(CurrentMousePosition.y - LastMousePosition.y) / 10.0f);
+			const float RotationY = cy::ToRadians(static_cast<float>(CurrentMousePosition.x - LastMousePosition.x) / 10.0f);
+			LightPosition = cy::Matrix3f::RotationXYZ(RotationX, RotationY, 0.0f) * LightPosition;
+			LastMousePosition = CurrentMousePosition;
+		}
+	}
+
 	cy::Vec3f LightViewPosition = (ViewMatrix *  LightPosition).XYZ();
 	glUniform3f(glGetUniformLocation(ProgramID, "LightViewPosition"), LightViewPosition[0], LightViewPosition[1], LightViewPosition[2]);
 
@@ -64,6 +79,29 @@ void Render()
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 
 	glutSwapBuffers();
+}
+
+void HandleMouseButton(int InButton, int InState, int InX, int InY)
+{
+	if (InButton == GLUT_LEFT_BUTTON && InState == GLUT_DOWN)
+	{
+		bIsRotating = true;
+		LastMousePosition = {InX, InY};
+		CurrentMousePosition = {InX, InY};
+	}
+
+	if (InState == GLUT_UP)
+	{
+		bIsRotating = false;
+	}
+}
+
+void HandleMouseMove(int InX, int InY)
+{
+	if (bIsRotating)
+	{
+		CurrentMousePosition = {InX, InY};
+	}
 }
 
 void Idle()
@@ -186,6 +224,8 @@ int main(int argc, char** argv)
 	glutCreateWindow("Transformations");
 	glutDisplayFunc(Render);
 	glewInit();
+	glutMouseFunc(HandleMouseButton);
+	glutMotionFunc(HandleMouseMove);
 	glutIdleFunc(Idle);
 	Initialize();
 	glutMainLoop();
