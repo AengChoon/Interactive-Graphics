@@ -221,7 +221,7 @@ int main(int argc, char** argv)
 	glutInitDisplayMode(GLUT_RGBA | GLUT_DEPTH | GLUT_DOUBLE);
 	glutInitWindowSize(Width, Height);
 	glutInitWindowPosition(100, 100);
-	glutCreateWindow("Transformations");
+	glutCreateWindow("Shading");
 	glutDisplayFunc(Render);
 	glewInit();
 	glutMouseFunc(HandleMouseButton);
