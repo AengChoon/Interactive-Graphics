@@ -83,7 +83,7 @@ void Render()
 
 void HandleMouseButton(int InButton, int InState, int InX, int InY)
 {
-	if (InButton == GLUT_LEFT_BUTTON && InState == GLUT_DOWN)
+	if (glutGetModifiers() == GLUT_ACTIVE_CTRL && InButton == GLUT_LEFT_BUTTON && InState == GLUT_DOWN)
 	{
 		bIsRotating = true;
 		LastMousePosition = {InX, InY};
@@ -100,7 +100,14 @@ void HandleMouseMove(int InX, int InY)
 {
 	if (bIsRotating)
 	{
-		CurrentMousePosition = {InX, InY};
+		if (glutGetModifiers() == GLUT_ACTIVE_CTRL)
+		{
+			CurrentMousePosition = {InX, InY};
+		}
+		else
+		{
+			bIsRotating = false;
+		}
 	}
 }
 
