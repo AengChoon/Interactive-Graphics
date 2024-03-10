@@ -255,7 +255,7 @@ template<> CY_NODISCARD inline double SqrtSafe<double>( double v ) { __m128d t=_
 #endif
 
 template<typename T> inline constexpr T Pi() { return static_cast<T>(3.141592653589793238462643383279502884197169); }
-template<typename T> inline constexpr T ToRadians(T v) { return v * Pi<T>() / static_cast<T>(180.0); }
+template<typename T> inline constexpr T ToRadians(T v) { return v * (Pi<T>() / static_cast<T>(180.0)); }
 template<typename T> inline constexpr T ToDegrees(T v) { return v * static_cast<T>(180.0) / Pi<T>(); }
 
 template <typename T> CY_NODISCARD inline bool IsFinite( T v ) { return std::numeric_limits<T>::is_integer || std::isfinite(v); }

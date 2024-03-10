@@ -28,6 +28,9 @@ cy::Matrix4f CameraRotationMatrix {cy::Matrix4f::Identity()};
 cy::Matrix4f ModelScaleMatrix {cy::Matrix4f::Identity()};
 cy::Matrix4f ProjectionMatrix;
 bool bIsPerspective {true};
+float AzimuthAngle = 90.0f;
+float PolarAngle = 0.0f;
+float Radius;
 
 void Idle()
 {
@@ -104,6 +107,34 @@ void HandleMouseMove(int InX, int InY)
 	if (bIsRotating || bIsZooming)
 	{
 		CurrentMousePosition = {InX, InY};
+
+		if (CurrentMousePosition != LastMousePosition)
+		{
+			if (bIsRotating)
+			{
+				AzimuthAngle += static_cast<float>(CurrentMousePosition.x - LastMousePosition.x) * 0.3f;
+				AzimuthAngle = fmod(AzimuthAngle, 360.0f);
+				if (AzimuthAngle < 0.0f)
+				{
+					AzimuthAngle = 360.0f + AzimuthAngle;
+				}
+
+				PolarAngle += static_cast<float>(CurrentMousePosition.y - LastMousePosition.y) * 0.3f;
+				constexpr auto PolarAngleLimit = 90.0f - 1.0f;
+				PolarAngle = cy::Clamp(PolarAngle, -PolarAngleLimit, +PolarAngleLimit);
+			}
+
+			if (bIsZooming)
+			{
+				Radius += static_cast<float>(CurrentMousePosition.y - LastMousePosition.y) * 0.1f;
+				if (Radius < 10.0f)
+				{
+					Radius = 10.0f;
+				}
+			}
+
+			LastMousePosition = CurrentMousePosition;
+		}
 	}
 }
 
@@ -116,6 +147,8 @@ void Initialize()
 	Object.LoadFromFileObj(ObjectName.c_str(), true);
 	Object.ComputeBoundingBox();
 	ObjectPosition = (Object.GetBoundMax() + Object.GetBoundMin()) * 0.5f;
+
+	Radius = (CameraPosition - ObjectPosition).Length();
 
 	Program.BuildFiles("SimpleShader.vert", "SimpleShader.frag");
 	ProgramID = Program.GetID();
@@ -133,32 +166,6 @@ void Initialize()
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-cy::Vec2<float> ToNormalizedDeviceCoordinate(const cy::Vec2<int>& InCoordinates)
-{
-	return {1.0f * static_cast<float>(InCoordinates.x) / Width * 2 - 1.0f, 1.0f * static_cast<float>(InCoordinates.y) / Height * 2 - 1.0f};
-}
-
-cy::Vec3<float> ToArcballVector(const cy::Vec2<int>& InCoordinate)
-{
-	constexpr float ArcballRadius = 1.0f;
-
-	auto ArcballVector = cy::Vec3<float>{ToNormalizedDeviceCoordinate(InCoordinate), 0.0f};
-	ArcballVector.y = -ArcballVector.y;
-	const auto XSquared = ArcballVector.x * ArcballVector.x;
-	const auto YSquared = ArcballVector.y * ArcballVector.y;
-
-	if (XSquared + YSquared <= ArcballRadius * ArcballRadius)
-	{
-		ArcballVector.z = sqrt(ArcballRadius * ArcballRadius - (XSquared + YSquared));
-	}
-	else
-	{
-		ArcballVector = cy::Normalize(ArcballVector) * ArcballRadius;
-	}
-
-	return ArcballVector;
-}
-
 void Render()
 {
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -167,28 +174,16 @@ void Render()
 	glEnableVertexAttribArray(0);
 	glUseProgram(ProgramID);
 
-	if (CurrentMousePosition != LastMousePosition)
-	{
-		if (bIsRotating)
-		{
-			const auto LastArcballVector = ToArcballVector(LastMousePosition);
-			const auto CurrentArcballVector = ToArcballVector(CurrentMousePosition);
-			const float RotationAngle = acos(std::min(1.0f, LastArcballVector.Dot(CurrentArcballVector)));
-			const auto RotationAxis = LastArcballVector.Cross(CurrentArcballVector).GetNormalized();
-			LastMousePosition = CurrentMousePosition;
-			CameraRotationMatrix *= cy::Matrix4f::Rotation(RotationAxis, RotationAngle);
-		}
+	const auto SinAzimuth = sin(cy::ToRadians(AzimuthAngle));
+	const auto CosAzimuth = cos(cy::ToRadians(AzimuthAngle));
+	const auto SinPolar = sin(cy::ToRadians(PolarAngle));
+	const auto CosPolar = cos(cy::ToRadians(PolarAngle));
 
-		if (bIsZooming)
-		{
-			CameraPosition.z += static_cast<float>(CurrentMousePosition.y) - static_cast<float>(LastMousePosition.y);
-			CameraPosition.z = cy::Clamp(CameraPosition.z, 10.0f, 1000.0f);
-			LastMousePosition = CurrentMousePosition;
-		}
-	}
+	CameraPosition.x = ObjectPosition.x + Radius * CosPolar * CosAzimuth;
+	CameraPosition.y = ObjectPosition.y + Radius * SinPolar;
+	CameraPosition.z = ObjectPosition.z + Radius * CosPolar * SinAzimuth;
 
-	cy::Matrix4f ViewMatrix = cy::Matrix4f::View(CameraPosition, (Object.GetBoundMax() + Object.GetBoundMin()) * 0.5f, {0.0f, 1.0f, 0.0f});
-	ViewMatrix *= CameraRotationMatrix;
+	const cy::Matrix4f ViewMatrix = cy::Matrix4f::View(CameraPosition, CameraPosition + (ObjectPosition - CameraPosition).GetNormalized(), {0.0f, 1.0f, 0.0f});
 	const cy::Matrix4f ModelMatrix = ModelScaleMatrix;
 	cy::Matrix4f ModelViewProjectionMatrix = ProjectionMatrix * ViewMatrix * ModelScaleMatrix;
 	glUniformMatrix4fv(glGetUniformLocation(ProgramID, "ModelViewProjectionMatrix"), 1, GL_FALSE, &ModelViewProjectionMatrix(0, 0));
@@ -204,7 +199,7 @@ int main(int argc, char** argv)
 					: "assets/teapot.obj";
 
 	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE);
+	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
 	glutInitContextVersion(4, 6);
 	glutInitWindowSize(Width, Height);
 	glutInitWindowPosition(100, 100);
