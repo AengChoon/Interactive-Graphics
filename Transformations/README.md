@@ -62,3 +62,11 @@ GLUT / [FreeGLUT](https://freeglut.sourceforge.net/)에서 문제가 있거나 [
 Mac OS X 사용자는 GLEW를 설치하기 위해 이 [튜토리얼](https://lazyfoo.net/tutorials/OpenGL/01_hello_opengl/mac/)을 따를 수 있습니다.
 
 ## 결과
+<div align=center> 
+  <img src="./img/result_1.gif"> <br>
+  카메라 각도 조절 <br> <br>
+  <img src="./img/result_2.gif"> <br>
+  카메라 거리 조절 <br> <br>
+  <img src="./img/result_3.gif"> <br>
+  원근 <-> 직교
+</div>
