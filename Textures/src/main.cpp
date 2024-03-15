@@ -5,6 +5,7 @@
 #include <cyCodeBase/cyMatrix.h>
 #include <cyCodeBase/cyGL.h>
 #include <cyCodeBase/cyTriMesh.h>
+#include <LodePNG/lodepng.h>
 #pragma comment (lib, "glew32.lib")
 
 constexpr int Width = 600;
