@@ -37,3 +37,6 @@
 * 빛을 별도의 물체로 나타내세요.
 
 ## 결과
+<div align=center> 
+  <img src="./img/result.gif">
+</div>
